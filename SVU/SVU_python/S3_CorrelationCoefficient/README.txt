@@ -3,9 +3,7 @@
 
 ## Overview
 
-This suite of Python and Bash scripts calculates the correlation coefficients (Pearson $r$) between ADCIRC model nodes and multiple reference stations for specific tidal datums (MHHW, MHW, MLLW, MLW, MTL, DTL).
-
-The code aligns with MATLAB-based logic for grid generation and spline fitting but is optimized for high-performance computing (HPC) using Python's `multiprocessing` and SLURM job arrays.
+The python code aligns with MATLAB-based logic for grid generation and spline fitting but is optimized for high-performance computing (HPC) using Python's `multiprocessing` and SLURM job arrays.
 
 ## 1\. Prerequisites & Environment
 
@@ -115,3 +113,4 @@ The final combined NetCDF file will contain:
   * **Coordinates:**
       * `node`: The absolute node IDs.
       * `station`: The station IDs from the CSV.
+
