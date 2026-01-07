@@ -21,9 +21,7 @@ Chunk stations is related to Pacific grid 8192, Alaska 16384
 Created in Matlab by Liujua.Tang@noaa.gov 01/27/2020
 Converted to python and changed the output to the netcdf format instead of .mat by  mojgan.rostaminia@noaa.gov, 09/08/2025
 """
-
-
-import argparse, glob, sys
+import argparse, glob, sys, re
 import numpy as np
 from netCDF4 import Dataset
 
@@ -67,18 +65,15 @@ def create_out_hl(path, var_name, title, N_total, chunk_stations):
     nc.createDimension("station", None)
     v_sta = nc.createVariable("stationN", "i4", ("station",))
     v_hl  = nc.createVariable(
-        var_name, "f4", ("station", "high_low"),  # Dimensions as requested (n*m)
+        var_name, "f4", ("station", "high_low"),
         zlib=True, complevel=4, 
-        # **REMOVED fill_value=FILLV**
-        # This lets the library use a default fill value,
-        # ensuring FILLV (-9.999...e+03) is treated as a normal number.
         chunksizes=(min(chunk_stations, max(1, N_total)), 2*CAP)
     )
     nc.title = title
     v_hl.long_name = (
         "First half (0..239)=times (s since model epoch), "
         "second half (240..479)=values; highs have +100 on higher-highs, "
-        "lows have -100 on lower-lows. Unused slots replaced with -9.9999004e+03" # Reworded comment
+        "lows have -100 on lower-lows. Unused slots replaced with -9.9999004e+03"
     )
     return nc, v_sta, v_hl
 
@@ -96,6 +91,16 @@ def normalize_datums(dat):
         out = dat.T.astype(np.float32, copy=False)
     return out
 
+def numerical_sort_key(s):
+    """
+    Extracts the last number from a filename string to use for sorting.
+    e.g., 'mp10.nc' -> 10, 'mp2.nc' -> 2
+    """
+    numbers = re.findall(r'\d+', s)
+    if numbers:
+        return int(numbers[-1])
+    return s
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pattern", default="xx_hh_ll_mp*.nc", help="glob for input part files")
@@ -103,14 +108,16 @@ def main():
     ap.add_argument("--chunk-stations", type=int, default=8192, help="station chunk size for output")
     args = ap.parse_args()
 
-    files = sorted(glob.glob(args.pattern))
+    # --- FIX: Sort files numerically, NOT alphabetically ---
+    files = glob.glob(args.pattern)
+    files.sort(key=numerical_sort_key)
+
     if not files:
         print(f"No files match: {args.pattern}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Found {len(files)} files:")
-    for fn in files:
-        print("  ", fn)
+    print(f"Found {len(files)} files. First 3: {files[:3]}")
+    print(f"Last 3: {files[-3:]}") # Verify sorting looks correct
 
     # Pass 1: total station count + sanity
     N_total = scan_total_stations(files)
@@ -128,43 +135,33 @@ def main():
                                           "Combined lows  (times/values packed)", N_total, args.chunk_stations)
 
     try:
-        # Append along station dimension as we go
         offset = 0
         for fn in files:
             print(f"Reading {fn} …")
             with Dataset(fn, "r") as ds:
-                # By default, netCDF4 reads the input file's fill value (-9999.9) 
-                # and converts it to np.nan
-                stationN = np.array(ds.variables["stationN"][:], dtype=np.int32)   # (nsta,)
-                datums   = normalize_datums(ds.variables["datums"][:])            # (nsta,7) float32
-                H = np.array(ds.variables["Htime_Hval"][:], dtype=np.float32)      # (nsta,480)
-                L = np.array(ds.variables["Ltime_Lval"][:], dtype=np.float32)      # (nsta,480)
+                stationN = np.array(ds.variables["stationN"][:], dtype=np.int32)
+                datums   = normalize_datums(ds.variables["datums"][:])
+                H = np.array(ds.variables["Htime_Hval"][:], dtype=np.float32)
+                L = np.array(ds.variables["Ltime_Lval"][:], dtype=np.float32)
 
             nsta = stationN.shape[0]
-            if H.shape != (nsta, 2*CAP) or L.shape != (nsta, 2*CAP):
-                raise ValueError(f"{fn}: unexpected H/L shapes; got {H.shape} and {L.shape}")
             
-            # Replace all np.nan (from input file's fill value) 
-            # with the specific number you requested.
+            # Apply Fill Value
             H[np.isnan(H)] = FILLV
             L[np.isnan(L)] = FILLV
 
-            # write station ids
+            # Write Data
             sta_slice = slice(offset, offset + nsta)
             sta_xx[sta_slice] = stationN
             sta_hh[sta_slice] = stationN
             sta_ll[sta_slice] = stationN
 
-            # datums: (datum, station) → transpose from (nsta,7)
             dat_xx[:, sta_slice] = datums.T
-
-            # Write with (station, high_low) shape (no transpose)
             hl_hh[sta_slice, :] = H
             hl_ll[sta_slice, :] = L
 
             offset += nsta
-            print(f"  wrote stations {sta_slice.start}..{sta_slice.stop-1}")
-
+            
         print(f"Done. Wrote:\n  {path_xx}\n  {path_hh}\n  {path_ll}")
     finally:
         nc_xx.close()
@@ -173,3 +170,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
