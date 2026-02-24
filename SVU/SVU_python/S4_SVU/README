@@ -1,0 +1,83 @@
+1.	Library Dependencies & Environment Setup
+The scripts are designed to run inside a Conda environment named TAD. 
+You can create the environment and install the required libraries using the terminal:
+# Create and activate the conda environment
+conda create -n TAD python=3.10
+conda activate TAD
+# Install the required libraries
+conda install numpy pandas scipy matplotlib netcdf4
+If you have TAD from the previous step, you can just activate 
+Activate your environment:
+
+source /path/to/conda/bin/activate <your_env_name>
+# Example: source  /home/mojganr/miniconda3/bin/activate TAD
+
+2.	Pre-Flight Checklist (Paths & Directories)
+Before running anything, you must ensure the hardcoded directory paths in the scripts actually exist on your machine.
+•	Base Directory: /work2/noaa/vdatum/…/Pacific/.
+•	Input Data: Ensure fort.63.nc, fort.14, TADxx.nc, and Obs_Pacific_SVU.csv are in their specified locations.
+•	Output Directories: Phase 1 requires an indata/ folder and will create a pre_process/ folder. Phase 3 will create an out_nc/ and logs/ folder.
+3.	Execution Order
+Phase 0: Quality Control & Defect Scanning
+Script: svu_phase0_pacific.py
+Before doing any complex math, the pipeline needs to find "bad" data in the raw model results.
+•	It scans the massive fort.63.nc file (which contains water levels over time).
+•	It flags "Dry Nodes" where the water level drops below -90,000 (specifically looking for -99999).
+•	It flags "Stuck Nodes" by looking at chunks of 3 consecutive time steps; if the water level barely changes (the range is less than 1e-8), it assumes the node is stuck.
+•	It saves these locations as a mask in Dry_Lcut_PA_SAL.nc in indata folder so downstream scripts know which nodes to ignore.
+•	Command: python  svu_phase0_pacific.py
+Phase 1: Cleaning and Interpolation
+Script: svu_phase1_pacific.py
+This step takes the raw tidal datums (like MLLW, MHW) and applies the masks to create a clean, continuous surface. * It reads the spatial coordinates of the nodes from the fort.14 file.
+•	It pulls in the raw tidal datums from TADxx.nc.
+•	It scrubs the data by turning known errors into blank spaces (NaN); this includes original "holes" (values less than -1000), specific high-water "spikes" (values > 0.001), and the dry/stuck nodes identified in Phase 0.
+•	Finally, it uses Nearest-Neighbor interpolation (NearestNDInterpolator) to estimate the values for all those blank spaces based on the surrounding healthy nodes, saving the cleaned surfaces as dm_{datum}.nc at pre_process folder.
+•	Command: python  svu_phase1_pacific.py
+
+Phase 2: Building the Spatial Covariance Matrix
+Scripts: svu_phase2_pacific.py, svu_phase2_combine_pacific.py, and their .sh wrappers
+This is where the model meets reality. Because the grid is massive, this phase uses SLURM job arrays to split the workload into 399 parallel chunks.
+•	The script loads the cleaned model data and reads real-world station observations from a CSV file (Obs_Pacific_SVU.csv). An example of this table is added at the same folder on the Github.
+•	It calculates the error at each station by subtracting the model's estimate from the actual observation (estn = ostn - mstn).
+•	For its specific chunk of the grid, the script calculates how strongly each node correlates with the observation stations using pre-calculated water distances and correlation coefficients.
+•	Once all 399 chunks are finished, the combination script (svu_phase2_combine_pacific.py) stitches these puzzle pieces back together into a single, massive NetCDF file containing the full covariance matrix for each datum.
+•	Command: 1) sbatch svu_phase2_array_pacific.sh 2) sbatch svu_phase2_combine_array_pacific.sh
+
+Phase 3: The Core Mathematics (SVU Calculation)
+Scripts: svu_phase3_pacific.py and svu_phase3_array_pacific.sh
+This final step calculates the ultimate corrections and the uncertainty field. It runs simultaneously for all six datums using multiple CPUs.
+•	Jackknife Resampling: The script loops through the data to identify any "bad" observation stations. If an observation differs too wildly from the model's expectation, it dynamically reduces that station's influence (its weight, W01) to prevent it from corrupting the whole grid.
+•	Grid Correction: Using matrix algebra, it applies the weighted station errors across the entire grid to generate a final spatial correction field (dd).
+•	Final Outputs: It calculates the absolute corrected datum grid (d = dm + dd) and the spatially varying uncertainty (diaPA), which tells you how much confidence you can have in the data at any specific coordinate.
+•	This will launch 6 parallel jobs (one for each datum: MLLW, MHHW, MHW, MLW, MTL, DTL). It calculates the final matrices and generates the d_dd_diaPA_{datum}_{runid}.nc files at out_nc folder
+•	Command: sbatch svu_phase3_array_pacific.sh
+
+
+
+Extra scripts: 
+1. svu_export_to_qgis_mesh.py
+Description: An export utility that converts the final Spatially Varying Uncertainty (SVU) outputs (out.nc folder) into a structured format compatible with GIS software.
+Key Features:
+•	Formats the unstructured grid (nodes and face connectivity) into a standard UGRID NetCDF structure natively recognized by QGIS.
+•	Splits the output into two lightweight files (qgis_{datum}_results.nc and qgis_{datum}_inputs.nc) to prevent the files from becoming too bloated.
+o	Writing: qgis_mllw_results.nc...
+Layer: mllw_d, Layer: mllw_dd, Layer: mllw_diaPA
+o	   Writing: qgis_mllw_inputs.nc...
+      Layer: mllw_dm, Layer: mllw_tad
+•	Fixes standard GIS longitude mapping boundaries, shifting coordinates greater than 180 degrees to the -180/180 format.
+•	Applies final physical checks, replacing missing model values and zeroing out invalid signs (e.g., preventing negative MHHW values).
+
+2. svu_visualize_covariance_components.py
+Description: A diagnostic mapping tool designed to deconstruct and visualize the individual mathematical components that make up the VDatum Covariance Kernel.
+Key Features:
+•	Uses the folium library to generate interactive, web-based satellite maps.
+•	Breaks down and maps four distinct layers of the calculation: Total Covariance, Distance Factor, Ratio Similarity, and the Correlation coefficient.
+•	Filters out insignificant nodes based on a specified threshold percentage to focus purely on the station's "bubble" of influence.
+•	Injects custom CSS styling to force white text on the 'jet' colormap legend for better readability against satellite imagery.
+3. verify_phase3_full_audit.py
+Description: A comprehensive Quality Assurance / Quality Control (QA/QC) script that audits the mathematical pipeline for a specific observation station from input to final output.
+Key Features:
+•	Pulls the raw RMS uncertainty from the original CSV file to ensure it correctly transferred into the Phase 2 NetCDF inputs.
+•	Extracts the final Phase 3 datum corrections and uncertainty matrices, alongside the Jackknife validation data.
+•	Runs automated logic checks to verify if the final corrected datum properly aligns with the real-world observation.
+•	Confirms that incorporating the station data successfully reduced the model's overall 
