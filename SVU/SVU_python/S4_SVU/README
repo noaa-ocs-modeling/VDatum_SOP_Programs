@@ -17,6 +17,7 @@ Before running anything, you must ensure the hardcoded directory paths in the sc
 •	Base Directory: /work2/noaa/vdatum/…/Pacific/.
 •	Input Data: Ensure fort.63.nc, fort.14, TADxx.nc, and Obs_Pacific_SVU.csv are in their specified locations.
 •	Output Directories: Phase 1 requires an indata/ folder and will create a pre_process/ folder. Phase 3 will create an out_nc/ and logs/ folder.
+
 3.	Execution Order
 Phase 0: Quality Control & Defect Scanning
 Script: svu_phase0_pacific.py
