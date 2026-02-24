@@ -114,4 +114,13 @@ The final combined NetCDF file will contain:
       * `node`: The absolute node IDs.
       * `station`: The station IDs from the CSV.
 
+## 6\. Spatial Correlation Mapping
+Script: S3_CorCoe_map_1station-pacific.py
+A spatial visualization tool that maps the correlation coefficients for a single target observation station across the entire ADCIRC grid.
+Generates both an interactive HTML map (using Plotly) and a static PNG map.
+Includes a pacific_wrap function to cleanly handle longitude continuity around the 180-degree meridian.
+Supports aggressive data downsampling (e.g., capping at 300,000 points) so browser-based interactive maps render smoothly without crashing.
+
+
+
 
