@@ -1,6 +1,6 @@
 Tidal Datum Uncertainty Calculator (Bodnar Method)
 Overview
-This script calculates the tidal datum uncertainty (standard deviation) between pairs of control and subordinate stations in the Pacific region. It processes station metadata and tidal datums to compute both 3-month and long-record (>= 12 months) uncertainties in a single, streamlined pipeline using the empirical Bodnar equations for the Pacific region (1981 NOAA Technical Report by A. Nicholas Bodnar, titled: "Estimating Accuracies of Tidal Datums from Short Term Observations, https://tidesandcurrents.noaa.gov/publications/NOAA_Technical_Report_NOS_COOPS_077.pdf, Page 9, Table 3). Note that within the report, Table 1 is for the East Coast and Table 2 is for the Gulf Coast.
+This script calculates the tidal datum uncertainty (standard deviation) for DART and UHSLC/IOC subordinate stations based on CO-OPS control stations in the Pacific region.. It processes station metadata and tidal datums to compute both 3-month and long-record (>= 12 months) uncertainties in a single, streamlined pipeline using the empirical Bodnar equations for the Pacific region (1981 NOAA Technical Report by A. Nicholas Bodnar, titled: "Estimating Accuracies of Tidal Datums from Short Term Observations, https://tidesandcurrents.noaa.gov/publications/NOAA_Technical_Report_NOS_COOPS_077.pdf, Page 9, Table 3). Note that within the report, Table 1 is for the East Coast and Table 2 is for the Gulf Coast.
 
 Ensure you have the following Python libraries installed:pandas, numpy, pyproj
 
