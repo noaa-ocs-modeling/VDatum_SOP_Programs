@@ -27,8 +27,11 @@ Where dt is Time difference (Hours), D is Distance (Nautical Miles), MNc is Tida
 4. Calculating Uncertainty (Long-Record IOC/ UHSLC Stations)
 Immediately after, the script calculates the long-record uncertainty for stations with 12 months or more of data using the alternate regression values.
 Calculates SRSMN: It calculates a new variable, which is the square root of the sum of the control and subordinate mean ranges (in feet).
+
+
+The format of IOC_Datums.xlsx file is the same as DartBuoy_Datums.xlsx file that is in this folder
 Applies the Long-Record Formula: It calculates the uncertainty using the long-record regression values:
 S (ft) = 0.0045√ (MNc + MNs) + 0.0128 |MNc-MNs/MNc| + 0.025
 
-5. Final Comprehensive Output
+6. Final Comprehensive Output
 The script converts both the 3-month and long-record uncertainties back into meters. It packages all variables (IDs, distances, time proxies, mean ranges, and both final uncertainty values) together and exports them directly into one single, comprehensive CSV file.
