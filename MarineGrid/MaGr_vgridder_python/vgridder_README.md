@@ -8,7 +8,6 @@ The core engine (vgridder_nc_Pacific_mp4.py) utilizes vectorized boundary enforc
 The legacy Fortran vgridder architecture relied on brute-force, point-by-point nested loops to calculate boundary intersections and layer expansions, resulting in severe computational bottlenecks for massive domains like the 500m Pacific Ocean grid. During the modernization to Python, the core logic was fundamentally optimized rather than just translated. By replacing the iterative pixel-by-pixel checks with NumPy vectorization (np.searchsorted) and introducing geographic bounding-box pre-filters, the new Python engine evaluates entire latitude rows simultaneously while instantly skipping irrelevant masked regions. This architectural shift leverages highly optimized C-backed array operations to deliver massive performance gains. Crucially, this speed does not compromise accuracy; when benchmarked using the complex Alaska regional domain, the new Python code reduced the processing time from several hours down to just 30 minutes, while producing grids that were 100% identical to the legacy Fortran outputs, proving strict mathematical equivalence.
 
 ***
----
 
 ## Script Inventory
 
@@ -26,8 +25,6 @@ The legacy Fortran vgridder architecture relied on brute-force, point-by-point n
 | **Visual** | `vis_MaGr.py` | Hercules HPC | Converts all NetCDFs to CSVs for global QGIS visualization. |
 
 ***
-
----
 
 ## Phase 1: Local Pre-Processing (Desktop)
 Before moving to the HPC, the raw bounding polygons must be generated, validated, and converted into the correct text formats.
