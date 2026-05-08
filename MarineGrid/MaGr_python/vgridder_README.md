@@ -38,7 +38,7 @@ Before moving to the HPC, the raw bounding polygons must be generated, validated
 
 ## Phase 2: Configuration & Execution (Hercules HPC)
 
-1. **Generate Configurations:** Run `vgridder_inGenerator.py`. This script dynamically builds the `vgridder_[name].in` files, automatically applying high-resolution settings (e.g., 0.00045 degrees) to island domains and low-resolution settings (e.g., 0.002 degrees) to the massive `PA_C_Ocean_01` domain.
+1. **Generate Configurations:** Run `vgridder_inGenerator.py`. This script dynamically builds the `vgridder_[name].in` files, automatically applying high-resolution settings (e.g., 0.00045 degrees-50 m) to island domains and low-resolution settings (e.g., 0.009 degrees-1 km) to the massive `PA_C_Ocean_01` domain.
 2. **Execute SLURM Array:** Submit the job to the cluster using `sbatch run_vgridder_Pacific_mp4.sh`. This triggers `vgridder_nc_Pacific_mp4.py` across all polygons simultaneously using parallel processing.
 
 ### Edge Case Management (`local_overrides.dat`)
