@@ -12,17 +12,21 @@ The legacy Fortran vgridder architecture relied on brute-force, point-by-point n
 
 ## Script Inventory
 
-Phase	Script Name	                        Location	 Primary Function
-QA/QC	Test_ovlappoly_Pacific.py	        Desktop	     Validates internal polygon alignment and prevents overlaps.
-QA/QC	Test_ovlappoly_Pacific&Alaska.py	Desktop	     Validates external boundary alignment against neighboring project grids.
-Prep	PolygonTOdat.py	                    Desktop	     Converts Shapefiles to the required VDatum .dat boundary format.
-Config	vgridder_inGenerator.py	            Hercules     Generates the .in configuration files for the gridder engine.
-Compute	run_vgridder_Pacific_mp4.sh	        Hercules   	 SLURM batch execution script for the gridder array.
-Compute	vgridder_nc_Pacific_mp4.py	        Hercules     The core Python grid generation engine.
-Audit	Check_marine_nc-onepoly.py	        Hercules     Prints the unique array values of a single NetCDF to verify the exact number of buffer layers generated (e.g., 0, 1, 2... 10).
-Audit	Check_marine_nc.py	                Hercules     Audits all generated NetCDF files to ensure layer generation succeeded globally.
-Visual	vis_MaGr-Onepoly.py	                Hercules 	 Converts a single NetCDF to a sub-sampled CSV for QGIS visualization.
-Visual	vis_MaGr.py	                        Hercules     Converts all NetCDFs to CSVs for global QGIS visualization.
+| Phase | Script Name | Location | Primary Function |
+| :--- | :--- | :--- | :--- |
+| **QA/QC** | `Test_ovlappoly_Pacific.py` | Local Desktop | Validates internal polygon alignment and prevents overlaps. |
+| **QA/QC** | `Test_ovlappoly_Pacific&Alaska.py` | Local Desktop | Validates external boundary alignment against neighboring project grids. |
+| **Prep** | `PolygonTOdat.py` | Local Desktop | Converts Shapefiles to the required VDatum `.dat` boundary format. |
+| **Config** | `vgridder_inGenerator.py` | Hercules HPC | Generates the `.in` configuration files for the gridder engine. |
+| **Compute** | `run_vgridder_Pacific_mp4.sh` | Hercules HPC | SLURM batch execution script for the gridder array. |
+| **Compute** | `vgridder_nc_Pacific_mp4.py` | Hercules HPC | The core Python grid generation engine. |
+| **Audit** | `Check_marine_nc-onepoly.py` | Hercules HPC | Prints the unique array values of a single NetCDF to verify the exact number of buffer layers generated (e.g., 0, 1, 2... 10). |
+| **Audit** | `Check_marine_nc.py` | Hercules HPC | Audits all generated NetCDF files to ensure layer generation succeeded globally. |
+| **Visual** | `vis_MaGr-Onepoly.py` | Hercules HPC | Converts a single NetCDF to a sub-sampled CSV for QGIS visualization. |
+| **Visual** | `vis_MaGr.py` | Hercules HPC | Converts all NetCDFs to CSVs for global QGIS visualization. |
+
+***
+
 ---
 
 ## Phase 1: Local Pre-Processing (Desktop)
