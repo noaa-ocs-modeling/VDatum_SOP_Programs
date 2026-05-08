@@ -3,8 +3,11 @@
 ## Overview
 This repository contains the complete pipeline for generating high-resolution, structured marine grids for the VDatum project. The workflow transitions from local GIS preprocessing (SMS/QGIS) to automated, massively parallel grid generation on the NOAA Hercules HPC cluster. 
 
-The core engine (`vgridder_nc_Pacific_mp4.py`) utilizes vectorized boundary enforcement and bounding-box pre-filtering to rapidly process tens of millions of grid points while properly handling nested island domains (holes). Edge cases, such as riverine discontinuities or buffer zone protections, are managed strictly through a localized command-file architecture.
+The core engine (vgridder_nc_Pacific_mp4.py) utilizes vectorized boundary enforcement and bounding-box pre-filtering to rapidly process tens of millions of grid points while properly handling nested island domains (holes). Edge cases, such as riverine discontinuities or buffer zone protections, are managed strictly through a localized command-file architecture.
+
 The legacy Fortran vgridder architecture relied on brute-force, point-by-point nested loops to calculate boundary intersections and layer expansions, resulting in severe computational bottlenecks for massive domains like the 500m Pacific Ocean grid. During the modernization to Python, the core logic was fundamentally optimized rather than just translated. By replacing the iterative pixel-by-pixel checks with NumPy vectorization (np.searchsorted) and introducing geographic bounding-box pre-filters, the new Python engine evaluates entire latitude rows simultaneously while instantly skipping irrelevant masked regions. This architectural shift leverages highly optimized C-backed array operations to deliver massive performance gains. Crucially, this speed does not compromise accuracy; when benchmarked using the complex Alaska regional domain, the new Python code reduced the processing time from several hours down to just 30 minutes, while producing grids that were 100% identical to the legacy Fortran outputs, proving strict mathematical equivalence.
+
+***
 ---
 
 ## Script Inventory
