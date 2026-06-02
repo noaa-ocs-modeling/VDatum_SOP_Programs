@@ -531,7 +531,7 @@ def ck_bp_after_layers(jfield, bp_segs, clon, clat):
         outside_main = (crossings_right % 2 == 0)
         invalid_mask = outside_main & row_mask
         
-        # 2. Enforce the 49 Holes (The Green Polygons)
+        # 2. Enforce the 49 Holes 
         for hole in hole_bboxes:
             # INSTANTLY SKIP the hole if the row is above or below the island!
             if yt < hole['ymin'] or yt > hole['ymax']:
@@ -911,8 +911,77 @@ def main():
                     jfield[local_mask] = 0
                     river_points[local_mask] = False # Removes river protection
                     print(f"  -> {cmd}: Turned {int(np.sum(local_mask))} dots to LAND.")
-    # =====================================================================
 
+    # =====================================================================
+    # SHAPEFILE OVERRIDE ARCHITECTURE (force_water.shp & force_land.shp)
+    # Uses a MASTER file in REF_DIR and instantly filters via bounding box!
+    # =====================================================================
+    force_water_shp = os.path.join(ref_dir, "force_water.shp")
+    if os.path.exists(force_water_shp):
+        print(f"\n[FIX] Reading manual WATER overrides from master file: {force_water_shp}...")
+        try:
+            water_segs = read_coast_segments_from_shapefile(force_water_shp, use_360=(float(np.nanmax(clon)) > 180.0))
+            if water_segs and Path is not None:
+                lon_grid, lat_grid = np.meshgrid(clon, clat, indexing='ij')
+                grid_points = np.column_stack((lon_grid.ravel(), lat_grid.ravel()))
+                total_forced = 0
+                
+                grid_min_lon, grid_max_lon = clon[0], clon[-1]
+                grid_min_lat, grid_max_lat = clat[0], clat[-1]
+                
+                for wx, wy in water_segs:
+                    # Prune polygons that don't belong to this island's domain!
+                    if np.max(wx) < grid_min_lon or np.min(wx) > grid_max_lon or \
+                       np.max(wy) < grid_min_lat or np.min(wy) > grid_max_lat:
+                        continue
+                        
+                    poly_path = Path(np.column_stack((wx, wy)))
+                    mask_flat = poly_path.contains_points(grid_points)
+                    mask_2d = mask_flat.reshape(imax, jmax)
+                    
+                    if np.any(mask_2d):
+                        jfield[mask_2d] = 1
+                        if river_points is not None:
+                            river_points[mask_2d] = True  # Protects from the Pond Eraser!
+                        total_forced += np.sum(mask_2d)
+                
+                print(f"  -> SHAPEFILE: Turned {total_forced} dots to WATER in this domain.")
+        except Exception as e:
+            print(f"  -> [WARNING] Failed to process {force_water_shp}: {e}")
+
+    force_land_shp = os.path.join(ref_dir, "force_land.shp")
+    if os.path.exists(force_land_shp):
+        print(f"\n[FIX] Reading manual LAND overrides from master file: {force_land_shp}...")
+        try:
+            land_segs = read_coast_segments_from_shapefile(force_land_shp, use_360=(float(np.nanmax(clon)) > 180.0))
+            if land_segs and Path is not None:
+                lon_grid, lat_grid = np.meshgrid(clon, clat, indexing='ij')
+                grid_points = np.column_stack((lon_grid.ravel(), lat_grid.ravel()))
+                total_forced = 0
+                
+                grid_min_lon, grid_max_lon = clon[0], clon[-1]
+                grid_min_lat, grid_max_lat = clat[0], clat[-1]
+                
+                for lx, ly in land_segs:
+                    # Prune polygons that don't belong to this island's domain!
+                    if np.max(lx) < grid_min_lon or np.min(lx) > grid_max_lon or \
+                       np.max(ly) < grid_min_lat or np.min(ly) > grid_max_lat:
+                        continue
+                        
+                    poly_path = Path(np.column_stack((lx, ly)))
+                    mask_flat = poly_path.contains_points(grid_points)
+                    mask_2d = mask_flat.reshape(imax, jmax)
+                    
+                    if np.any(mask_2d):
+                        jfield[mask_2d] = 0
+                        if river_points is not None:
+                            river_points[mask_2d] = False # Removes river protection
+                        total_forced += np.sum(mask_2d)
+                        
+                print(f"  -> SHAPEFILE: Turned {total_forced} dots to LAND in this domain.")
+        except Exception as e:
+            print(f"  -> [WARNING] Failed to process {force_land_shp}: {e}")
+    # =====================================================================
     write_nc_gtx_like(f"water_{folder_name}.nc", (jfield > 0).astype(np.int8), alat0, alon0, cfg.dely, cfg.delx, "i1")
 
     ip_init, mid_init = ponds_label(jfield)
