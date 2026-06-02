@@ -42,13 +42,13 @@ Before moving to the HPC, the raw bounding polygons must be generated, validated
 1. **Generate Configurations:** Run `vgridder_inGenerator.py`. This script dynamically builds the `vgridder_[name].in` files, automatically applying high-resolution settings (e.g., 0.00045 degrees) to island domains and low-resolution settings (e.g., 0.002 degrees) to the massive `PA_C_Ocean_01` domain.
 2. **Execute SLURM Array:** Submit the job to the cluster using `sbatch run_vgridder_Pacific_mp4.sh`. This triggers `vgridder_nc_Pacific_mp4.py` across all polygons simultaneously using parallel processing.
 
-### Edge Case Management (`local_overrides.dat`)
-For specific geographic anomalies (e.g., severing artificial land bridges or forcing disconnected rivers to stay wet), do not alter the global Python script. Instead, place a `local_overrides.dat` file inside the specific polygon's boundary folder (e.g., `PA_NE_HI_01/local_overrides.dat`).
-* **Format:** `COMMAND LON_MIN LON_MAX LAT_MIN LAT_MAX`
-* **Available Commands:**
-    * `FORCE_LAND`: Converts the specified bounding box to land (`0`), forcing the layer engine to treat it as a hard barrier.
-    * `FORCE_WATER`: Converts the specified bounding box to water (`1`) and actively protects it from the inland pond-eraser logic.
-* **Example:** `FORCE_WATER -155.85 -155.84 20.01 20.02`
+  **Edge Case Management** (Master Shapefile Overrides):
+  For specific location (e.g., severing artificial land bridges or forcing disconnected rivers to stay wet), we do not alter the global Python script. Instead, we use master shapefiles located in the central REF_DIR (e.g., /work2/noaa/vdatum/.../out_marine_grid_in_files/).
+The script dynamically reads these master files, instantly filters out polygons that don't belong to the active island using a bounding-box check, and applies the custom fixes.
+Available Override Files:
+force_water.shp: Any polygon drawn in this shapefile converts the enclosed grid dots to water (1) and actively protects them from the inland pond-eraser logic.
+force_land.shp: Any polygon drawn in this shapefile converts the enclosed grid dots to land (0), forcing the layer engine to treat it as a hard barrier.
+
 
 ---
 
