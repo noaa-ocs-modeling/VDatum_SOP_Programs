@@ -29,6 +29,7 @@ The `vpop_nc_Pacific_mp4.py` script reimplements the legacy Fortran workflow in 
 * **Weighted Neighbor Fill (Step 7):** Iteratively fills remaining tidal cells. To preserve Fortran behavior, this step uses a Numba-compiled synchronous sweep (`_fill_weighted_fortran_sync_core`) that computes temporary values across the grid and updates the main arrays only after each sweep is complete.
 
 * **Layer Fill (Step 8):** Extends tidal datum values into riverine systems and buffer zones (layers 2+) generated during the `vgridder` phase.
+* **Manual Grid Overrides Using Shapefiles:** This Python workflow includes a new shapefile-based override feature that was not part of the legacy Fortran implementation. In addition to the standard polygon and coastline processing, the script checks for master override shapefiles in `REF_DIR`, including `force_water.shp` and `force_dry.shp`, and reads them with `geopandas.read_file()`. The geometries are converted into polygon segments, filtered to the current model domain, and then applied as point-in-polygon masks over the structured grid to manually force selected cells to water or dry/land. These overridden cells are carried through later cleanup steps so that user-defined channels, river connections, closures, or other manual corrections are preserved in the final marine grid. This provides a flexible manual correction mechanism for areas where automated boundary or coastline processing alone is not sufficient.
 
 ---
 
