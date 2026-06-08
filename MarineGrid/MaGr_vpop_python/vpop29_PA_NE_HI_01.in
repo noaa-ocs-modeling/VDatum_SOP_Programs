@@ -1,0 +1,31 @@
+Input file for vpop29.f: Pacific Domain - PA_NE_HI_01 (standard datum (d))
+0  *** SHOULD BE ZERO *** <icorr_ord  (correct for tidal order)
+0                           <icorr_dat  (correct to tidal datums)
+0                           <ivoid_stop (stop if any pts unfilled
+0                           <ismooth (number of times)
+0  72 292  46 65     1389 86        <nprt, i,jprnt
+0  0  0  0  0               <print:isv,itide,dv(# digits),ipond,mfill
+-0.1524  0.0   lwd.nc       <value1,value2,new datum file name
+none                        <MSF file
+none                        <non-tidal
+../output_BP2026_v7/PA_NE_HI_01/dpolygon_xyij01.dat                   <BP
+none                                                    <grid bound polygon 
+none                                                    <MSL NetCDF file
+PA_NE_HI_01/unfilled                                         <output:unfilled grids
+PA_NE_HI_01/itide                                            <output:tide points
+/work2/noaa/vdatum/mojganr/work_adcirc/MaGr/vgrid/out_marine_grid_nc/marine_PA_NE_HI_01.nc                        <marine grid
+6  1                        <nfmax(number of sets), ngrids
+/work2/noaa/vdatum/mojganr/work_adcirc/SVU/S4_svu/Pacific/out_nc/d_dd_diaPA_mhhw_Pac_SAL.nc
+PA_NE_HI_01/mhhw.nc                     <output vdatum file name
+/work2/noaa/vdatum/mojganr/work_adcirc/SVU/S4_svu/Pacific/out_nc/d_dd_diaPA_mhw_Pac_SAL.nc
+PA_NE_HI_01/mhw.nc                     <output vdatum file name
+/work2/noaa/vdatum/mojganr/work_adcirc/SVU/S4_svu/Pacific/out_nc/d_dd_diaPA_mlw_Pac_SAL.nc
+PA_NE_HI_01/mlw.nc                     <output vdatum file name
+/work2/noaa/vdatum/mojganr/work_adcirc/SVU/S4_svu/Pacific/out_nc/d_dd_diaPA_mllw_Pac_SAL.nc
+PA_NE_HI_01/mllw.nc                     <output vdatum file name
+/work2/noaa/vdatum/mojganr/work_adcirc/SVU/S4_svu/Pacific/out_nc/d_dd_diaPA_mtl_Pac_SAL.nc
+PA_NE_HI_01/mtl.nc                     <output vdatum file name
+/work2/noaa/vdatum/mojganr/work_adcirc/SVU/S4_svu/Pacific/out_nc/d_dd_diaPA_dtl_Pac_SAL.nc
+PA_NE_HI_01/dtl.nc                     <output vdatum file name
+0  0
+--------------------------------------------------------------------------- 
