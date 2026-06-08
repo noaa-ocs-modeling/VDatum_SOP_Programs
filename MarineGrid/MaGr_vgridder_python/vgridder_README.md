@@ -42,14 +42,14 @@ Before moving to the HPC, the raw bounding polygons must be generated, validated
 1. **Generate Configurations:** Run `vgridder_inGenerator.py`. This script dynamically builds the `vgridder_[name].in` files, automatically applying high-resolution settings (e.g., 0.00045 degrees) to island domains and low-resolution settings (e.g., 0.002 degrees) to the massive `PA_C_Ocean_01` domain.
 2. **Execute SLURM Array:** Submit the job to the cluster using `sbatch run_vgridder_Pacific_mp4.sh`. This triggers `vgridder_nc_Pacific_mp4.py` across all polygons simultaneously using parallel processing.
 
-  **Edge Case Management** (Master Shapefile Overrides):
+* **Edge Case Management** (Master Shapefile Overrides):
   For specific location (e.g., severing artificial land bridges or forcing disconnected rivers to stay wet), we do not alter the global Python script. Instead, we use master shapefiles located in the central REF_DIR (e.g., /work2/noaa/vdatum/.../out_marine_grid_in_files/).
 The script dynamically reads these master files, instantly filters out polygons that don't belong to the active island using a bounding-box check, and applies the custom fixes.
 Available Override Files:
 force_water.shp: Any polygon drawn in this shapefile converts the enclosed grid dots to water (1) and actively protects them from the inland pond-eraser logic.
 force_land.shp: Any polygon drawn in this shapefile converts the enclosed grid dots to land (0), forcing the layer engine to treat it as a hard barrier.
 
-
+* **Manual Grid Overrides Using Shapefiles:** This Python workflow includes a new shapefile-based override feature that was not part of the legacy Fortran implementation. In addition to the standard polygon and coastline processing, the script checks for master override shapefiles in `REF_DIR`, including `force_water.shp` and `force_land.shp`, and reads them with `geopandas.read_file()`. The geometries are converted into polygon segments, filtered to the current model domain, and then applied as point-in-polygon masks over the structured grid to manually force selected cells to water or dry/land. These overridden cells are carried through later cleanup steps so that user-defined channels, river connections, closures, or other manual corrections are preserved in the final marine grid. This provides a flexible manual correction mechanism for areas where automated boundary or coastline processing alone is not sufficient.
 ---
 
 ## Phase 3: QA/QC and Visualization
