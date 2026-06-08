@@ -20,7 +20,7 @@ The legacy Fortran `vpop29nc4.f` architecture relied on brute-force nearest-node
 ---
 
 ## Phase 1: Execution (Hercules HPC)
-* **Generate Configurations: Run vpop_inGenerator.py. This script dynamically builds the vpop29_[name].in files, stepping through standard tidal datums (MHHW, MHW, MLW, MLLW, MTL, DTL) and establishing output paths. It simultaneously creates secondary configuration blocks specifically for SVU (diaPA) uncertainty passes.
+* **Generate Configurations:** Run vpop_inGenerator.py. This script dynamically builds the vpop29_[name].in files, stepping through standard tidal datums (MHHW, MHW, MLW, MLLW, MTL, DTL) and establishing output paths. It simultaneously creates secondary configuration blocks specifically for SVU (diaPA) uncertainty passes.
 * **Execute SLURM Array:** Submit the job to the cluster using the appropriate SLURM array script (patterned after `run_vgrid_Pacific_mp4.sh`). This triggers the core Python engine across all regional polygons simultaneously using parallel processing, mapping each SLURM task ID to a specific `.in` file.
 
 ---
