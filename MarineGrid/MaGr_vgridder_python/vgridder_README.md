@@ -42,14 +42,7 @@ Before moving to the HPC, the raw bounding polygons must be generated, validated
 1. **Generate Configurations:** Run `vgridder_inGenerator.py`. This script dynamically builds the `vgridder_[name].in` files, automatically applying high-resolution settings (e.g., 0.00045 degrees) to island domains and low-resolution settings (e.g., 0.002 degrees) to the massive `PA_C_Ocean_01` domain.
 2. **Execute SLURM Array:** Submit the job to the cluster using `sbatch run_vgridder_Pacific_mp4.sh`. This triggers `vgridder_nc_Pacific_mp4.py` across all polygons simultaneously using parallel processing.
 
-### Edge Case Management (`local_overrides.dat`)
-For specific geographic anomalies (e.g., severing artificial land bridges or forcing disconnected rivers to stay wet), do not alter the global Python script. Instead, place a `local_overrides.dat` file inside the specific polygon's boundary folder (e.g., `PA_NE_HI_01/local_overrides.dat`).
-* **Format:** `COMMAND LON_MIN LON_MAX LAT_MIN LAT_MAX`
-* **Available Commands:**
-    * `FORCE_LAND`: Converts the specified bounding box to land (`0`), forcing the layer engine to treat it as a hard barrier.
-    * `FORCE_WATER`: Converts the specified bounding box to water (`1`) and actively protects it from the inland pond-eraser logic.
-* **Example:** `FORCE_WATER -155.85 -155.84 20.01 20.02`
-
+* **Manual Grid Overrides Using Shapefiles:** This Python workflow includes a new shapefile-based override feature that was not part of the legacy Fortran implementation. In addition to the standard polygon and coastline processing, the script checks for master override shapefiles in `REF_DIR`, including `force_water.shp` and `force_land.shp`, and reads them with `geopandas.read_file()`. The geometries are converted into polygon segments, filtered to the current model domain, and then applied as point-in-polygon masks over the structured grid to manually force selected cells to water or dry/land. These overridden cells are carried through later cleanup steps so that user-defined channels, river connections, closures, or other manual corrections are preserved in the final marine grid. This provides a flexible manual correction mechanism for areas where automated boundary or coastline processing alone is not sufficient.
 ---
 
 ## Phase 3: QA/QC and Visualization
