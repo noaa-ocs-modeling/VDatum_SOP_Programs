@@ -1260,13 +1260,7 @@ def fill_weighted(
     idx: int,
     max_iter_factor: int = 6,
 ) -> int:
-    """Fortran-synchronous weighted neighbor fill using Numba.
-
-    This is the faithful Step 7/Layer fill. The earlier fast version updated
-    mfill in-place during the sweep, but Fortran stores temporary values in
-    tv/iupdate and updates only after the sweep. That difference can change
-    millions of cells. This version follows the Fortran update timing.
-    """
+    
     import time
 
     if not HAVE_NUMBA:
