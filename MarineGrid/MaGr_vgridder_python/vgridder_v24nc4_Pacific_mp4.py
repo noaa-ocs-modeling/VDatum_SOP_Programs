@@ -265,6 +265,12 @@ def read_coast_segments_from_shapefile(shp_path: str, use_360: bool = False) -> 
     print(f"[READING COASTLINE] Longitude mode: {'0..360' if use_360 else '-180..180'}")
 
     gdf = gpd.read_file(shp_path)
+    geom_types = set(gdf.geometry.geom_type.unique())
+    if "LineString" in geom_types or "MultiLineString" in geom_types:
+        raise ValueError(
+            f"{shp_path} contains LineString/MultiLineString geometries. "
+            "The current vgridder coastline masking requires Polygon/MultiPolygon land geometry."
+        )
     segs: List[Tuple[np.ndarray, np.ndarray]] = []
 
     def fix_lon(lon: np.ndarray) -> np.ndarray:
