@@ -26,8 +26,6 @@ The script performs the following steps:
 ## Outputs
 
 The script creates the following files:
-
-```text
 atlantic_polygons_diagnostic.shp
 atlantic_error_points.shp
 atlantic_invalid_geometry_report.csv
