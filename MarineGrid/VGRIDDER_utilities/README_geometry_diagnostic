@@ -1,0 +1,36 @@
+# Geometry Diagnostic Script
+
+This script identifies invalid polygon geometries in a shapefile and creates diagnostic outputs to help locate and review the issues in GIS software.
+
+## Purpose
+
+The script automatically detects invalid polygon features using GeoPandas/Shapely and creates:
+
+- a polygon shapefile containing only the invalid features
+- a point shapefile showing the reported geometry error location
+- a CSV report listing the source row, exploded row, and validity reason
+
+## Workflow
+
+The script performs the following steps:
+
+1. Reads the input shapefile.
+2. Confirms or assigns the coordinate reference system, currently set to `EPSG:4269` / NAD83.
+3. Explodes multipart polygons into individual features.
+4. Detects invalid geometries using GeoPandas/Shapely.
+5. Records the invalid geometry reason using Shapely’s `explain_validity()`.
+6. Creates a diagnostic polygon shapefile containing only invalid geometries.
+7. Creates a diagnostic point shapefile at the reported error location when available.
+8. Writes a CSV report with row numbers and error reasons.
+
+## Outputs
+
+The script creates the following files:
+
+```text
+atlantic_polygons_diagnostic.shp
+atlantic_error_points.shp
+atlantic_invalid_geometry_report.csv
+
+##Requirements
+conda install -c conda-forge geopandas shapely pandas
